@@ -1,0 +1,573 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum Role {
+  SUPERADMIN
+  OWNER
+  MANAGER
+  VETERINARIAN
+  ACCOUNTANT
+  WORKER
+}
+
+enum AnimalStatus {
+  ACTIVE
+  SOLD
+  DECEASED
+  QUARANTINED
+  TRANSFERRED
+}
+
+enum AnimalGender {
+  MALE
+  FEMALE
+}
+
+enum VaccinationStatus {
+  PENDING
+  COMPLETED
+  OVERDUE
+  SKIPPED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  UPI
+  BANK_TRANSFER
+  CASH
+  RAZORPAY
+  CHEQUE
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  TELEGRAM
+  EMAIL
+  SMS
+}
+
+enum NotificationEvent {
+  VACCINATION_DUE
+  PAYMENT_DUE
+  STOCK_LOW
+  MEDICINE_EXPIRY
+  ANIMAL_HEALTH_ALERT
+  PAYMENT_RECEIVED
+  ANIMAL_TRANSFERRED
+}
+
+enum LogAction {
+  CREATE
+  UPDATE
+  DELETE
+  TRANSFER
+  VACCINATE
+  TREAT
+  LOGIN
+  LOGOUT
+  EXPORT
+  IMPORT
+  PAYMENT
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum ExpenseCategory {
+  FEED
+  VACCINATION
+  MEDICINE
+  LABOUR
+  MISCELLANEOUS
+  PURCHASE
+}
+
+enum RevenueCategory {
+  SALE
+  MILK
+  BREEDING
+  MANURE
+}
+
+// ─────────────────────────────────────────────
+// Core Entities
+// ─────────────────────────────────────────────
+
+model User {
+  id                String          @id @default(uuid())
+  email             String          @unique
+  passwordHash      String
+  name              String
+  role              Role            @default(WORKER)
+  phone             String?
+  whatsappNumber    String?
+  telegramChatId    String?
+  isActive          Boolean         @default(true)
+  lastLogin         DateTime?
+  profileImageUrl   String?
+  farmId            String?
+  farm              Farm?           @relation("FarmUsers", fields: [farmId], references: [id])
+  vaccinations      Vaccination[]   @relation("AdministeredBy")
+  medicalRecords    MedicalRecord[] @relation("DiagnosedBy")
+  auditLogs         AuditLog[]
+  apiKeys           ApiKey[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([email])
+  @@index([farmId])
+}
+
+model Farm {
+  id              String          @id @default(uuid())
+  name            String
+  code            String          @unique // Short identifier
+  location        String?
+  address         String?
+  phone           String?
+  gstNumber       String?
+  upiId           String?         // Farm's UPI ID for payment collection
+  logoUrl         String?
+  isActive        Boolean         @default(true)
+  ownerId         String?
+  users           User[]          @relation("FarmUsers")
+  animals         Animal[]
+  feedInventory   FeedInventory[]
+  invoices        Invoice[]
+  expenses        Expense[]
+  notifications   NotificationLog[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([code])
+}
+
+// ─────────────────────────────────────────────
+// Module 1: Animal Management
+// ─────────────────────────────────────────────
+
+model Animal {
+  id                String            @id @default(uuid())
+  customId          String            @unique // e.g., G001, B001
+  rfidTag           String?           @unique
+  qrCodeUrl         String?
+  name              String?
+  breed             String
+  weight            Float             // Current weight in kg
+  dateOfBirth       DateTime
+  gender            AnimalGender
+  color             String?
+  markings          String?           // Distinctive physical markings
+  purchaseDate      DateTime?
+  purchaseCost      Float?            @default(0.0)
+  status            AnimalStatus      @default(ACTIVE)
+  location          String?           // Pen / Shed / Paddock identifier
+  images            String[]          // S3 URLs
+  videos            String[]          // S3 URLs
+  motherCustomId    String?           // Lineage tracking
+  fatherCustomId    String?
+  farmId            String
+  farm              Farm              @relation(fields: [farmId], references: [id])
+  vaccinations      Vaccination[]
+  medicalHistory    MedicalRecord[]
+  feedConsumption   FeedConsumption[]
+  activityLogs      ActivityLog[]
+  expenses          Expense[]
+  revenues          Revenue[]
+  weightHistory     WeightRecord[]
+  invoiceItems      InvoiceItem[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([farmId])
+  @@index([status])
+  @@index([breed])
+}
+
+model WeightRecord {
+  id         String   @id @default(uuid())
+  animalId   String
+  animal     Animal   @relation(fields: [animalId], references: [id])
+  weight     Float
+  recordedAt DateTime @default(now())
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@index([animalId])
+}
+
+model ActivityLog {
+  id            String   @id @default(uuid())
+  animalId      String
+  animal        Animal   @relation(fields: [animalId], references: [id])
+  actionType    String   // WeightUpdate, Transfer, Vaccination, Illness, FeedChange, Sale, Birth
+  description   String
+  performedById String?
+  metadata      Json?    // Extra structured data for the action
+  createdAt     DateTime @default(now())
+
+  @@index([animalId])
+}
+
+// ─────────────────────────────────────────────
+// Module 2: Vaccination Management
+// ─────────────────────────────────────────────
+
+model Vaccination {
+  id               String            @id @default(uuid())
+  animalId         String
+  animal           Animal            @relation(fields: [animalId], references: [id])
+  vaccineName      String
+  disease          String?           // Disease it prevents
+  dateGiven        DateTime?
+  nextDueDate      DateTime
+  batchNumber      String?
+  manufacturer     String?
+  dosage           String?
+  administeredById String?
+  administeredBy   User?             @relation("AdministeredBy", fields: [administeredById], references: [id])
+  status           VaccinationStatus @default(PENDING)
+  notes            String?
+  reminder30Sent   Boolean           @default(false)
+  reminder7Sent    Boolean           @default(false)
+  reminder1Sent    Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([animalId])
+  @@index([nextDueDate])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────
+// Module 3: Medical History
+// ─────────────────────────────────────────────
+
+model MedicalRecord {
+  id             String   @id @default(uuid())
+  animalId       String
+  animal         Animal   @relation(fields: [animalId], references: [id])
+  disease        String
+  symptoms       String?
+  diagnosis      String
+  treatment      String
+  medicines      Json?    // Array of { name, dosage, duration, cost }
+  prescription   String?
+  doctorNotes    String?
+  attachments    String[] // URLs to reports / images
+  followUpDate   DateTime?
+  isResolved     Boolean  @default(false)
+  treatmentCost  Float?   @default(0.0)
+  veterinarianId String?
+  veterinarian   User?    @relation("DiagnosedBy", fields: [veterinarianId], references: [id])
+  date           DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([animalId])
+  @@index([date])
+}
+
+// ─────────────────────────────────────────────
+// Module 4: Feed Management
+// ─────────────────────────────────────────────
+
+model FeedInventory {
+  id                String            @id @default(uuid())
+  feedType          String            // e.g., Maize, Lucerne, Concentrates, Hay
+  supplier          String?
+  quantityPurchased Float             // in kg
+  cost              Float             // Total purchase cost
+  costPerKg         Float             // Derived: cost / quantityPurchased
+  availableStock    Float             // in kg — updated on each consumption
+  minimumThreshold  Float             @default(50.0) // Alert when stock goes below
+  purchaseDate      DateTime          @default(now())
+  expiryDate        DateTime?
+  batchNumber       String?
+  farmId            String
+  farm              Farm              @relation(fields: [farmId], references: [id])
+  consumptions      FeedConsumption[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([farmId])
+}
+
+model FeedConsumption {
+  id              String        @id @default(uuid())
+  animalId        String
+  animal          Animal        @relation(fields: [animalId], references: [id])
+  feedInventoryId String
+  feedInventory   FeedInventory @relation(fields: [feedInventoryId], references: [id])
+  quantity        Float         // consumed in kg
+  date            DateTime      @default(now())
+  costAtTime      Float         // Cached costPerKg at time of recording
+  totalCost       Float         // quantity * costAtTime
+  recordedById    String?
+  createdAt       DateTime      @default(now())
+
+  @@index([animalId])
+  @@index([feedInventoryId])
+  @@index([date])
+}
+
+// ─────────────────────────────────────────────
+// Module 5: Customer Management
+// ─────────────────────────────────────────────
+
+model Customer {
+  id                 String     @id @default(uuid())
+  name               String
+  mobile             String
+  whatsappNumber     String
+  email              String?
+  country            String     @default("India")
+  state              String?
+  city               String?
+  address            String?
+  gstNumber          String?    // For B2B invoicing
+  outstandingBalance Float      @default(0.0)
+  totalPurchased     Float      @default(0.0)
+  isActive           Boolean    @default(true)
+  notes              String?
+  invoices           Invoice[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@index([mobile])
+  @@index([whatsappNumber])
+}
+
+// ─────────────────────────────────────────────
+// Module 6: Billing & Collections
+// ─────────────────────────────────────────────
+
+model Invoice {
+  id               String        @id @default(uuid())
+  invoiceNumber    String        @unique
+  customerId       String
+  customer         Customer      @relation(fields: [customerId], references: [id])
+  farmId           String
+  farm             Farm          @relation(fields: [farmId], references: [id])
+  gstNumber        String?
+  items            InvoiceItem[]
+  subTotal         Float
+  discountAmount   Float         @default(0.0)
+  cgstAmount       Float         @default(0.0)
+  sgstAmount       Float         @default(0.0)
+  igstAmount       Float         @default(0.0)
+  totalAmount      Float
+  paidAmount       Float         @default(0.0)
+  balanceAmount    Float         // totalAmount - paidAmount
+  status           InvoiceStatus @default(UNPAID)
+  dueDate          DateTime
+  pdfUrl           String?       // S3 URL to generated PDF
+  razorpayOrderId  String?
+  upiLink          String?
+  payments         Payment[]
+  reminderSent     Boolean       @default(false)
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([customerId])
+  @@index([farmId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  animalId    String?
+  animal      Animal?  @relation(fields: [animalId], references: [id])
+  description String
+  quantity    Int      @default(1)
+  unitPrice   Float
+  totalPrice  Float
+  gstRate     Float    @default(0.0)
+  createdAt   DateTime @default(now())
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  invoiceId      String
+  invoice        Invoice       @relation(fields: [invoiceId], references: [id])
+  amount         Float
+  paymentMethod  PaymentMethod @default(UPI)
+  transactionId  String?
+  razorpayPaymentId String?
+  paymentDate    DateTime      @default(now())
+  receiptUrl     String?
+  status         String        @default("SUCCESS")
+  notes          String?
+  createdAt      DateTime      @default(now())
+
+  @@index([invoiceId])
+}
+
+// ─────────────────────────────────────────────
+// Module 10: Costing Per Animal
+// ─────────────────────────────────────────────
+
+model Expense {
+  id          String          @id @default(uuid())
+  animalId    String?
+  animal      Animal?         @relation(fields: [animalId], references: [id])
+  farmId      String
+  farm        Farm            @relation(fields: [farmId], references: [id])
+  category    ExpenseCategory
+  description String
+  amount      Float
+  date        DateTime        @default(now())
+  receiptUrl  String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([animalId])
+  @@index([farmId])
+  @@index([category])
+}
+
+model Revenue {
+  id          String          @id @default(uuid())
+  animalId    String?
+  animal      Animal?         @relation(fields: [animalId], references: [id])
+  farmId      String?
+  category    RevenueCategory
+  description String
+  amount      Float
+  date        DateTime        @default(now())
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([animalId])
+}
+
+// ─────────────────────────────────────────────
+// Module 7 & 11: Messaging & Notifications
+// ─────────────────────────────────────────────
+
+model NotificationLog {
+  id              String              @id @default(uuid())
+  farmId          String?
+  farm            Farm?               @relation(fields: [farmId], references: [id])
+  channel         NotificationChannel
+  event           NotificationEvent
+  recipient       String              // Phone / Chat ID / Email
+  messageContent  String
+  status          MessageStatus       @default(QUEUED)
+  errorMessage    String?
+  externalId      String?             // WhatsApp message ID / Telegram message_id
+  responsePayload Json?
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+  readAt          DateTime?
+  createdAt       DateTime            @default(now())
+
+  @@index([farmId])
+  @@index([channel])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────
+// Module 14: Security & Audit
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id         String    @id @default(uuid())
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id])
+  action     LogAction
+  resource   String    // Table/entity name e.g., "Animal", "Invoice"
+  resourceId String?
+  details    Json?     // Before/after snapshot
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+}
+
+model LoginHistory {
+  id          String   @id @default(uuid())
+  userId      String
+  ipAddress   String?
+  userAgent   String?
+  successful  Boolean
+  failReason  String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// Module 13: API Keys (for external integrations)
+// ─────────────────────────────────────────────
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  name        String
+  keyHash     String    @unique // SHA-256 of the actual key
+  prefix      String    // First 8 chars shown to user (e.g., "gfe_abc1")
+  scopes      String[]  // Allowed scopes e.g., ["animals:read", "invoices:write"]
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// Data Migration
+// ─────────────────────────────────────────────
+
+model MigrationJob {
+  id            String   @id @default(uuid())
+  farmId        String
+  fileName      String
+  fileUrl       String
+  type          String   // CSV, EXCEL, OCR, WHATSAPP_EXPORT
+  status        String   @default("PROCESSING") // PROCESSING, COMPLETED, FAILED
+  totalRows     Int?
+  processedRows Int?
+  errorRows     Int?
+  errors        Json?    // Array of { row, message }
+  uploadedById  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([farmId])
+}
