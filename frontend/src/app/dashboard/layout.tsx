@@ -38,10 +38,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content area */}
       <div className="flex-1 flex flex-col" style={{ marginLeft: 'var(--sidebar-width)' }}>
         <Topbar />
-        <main className="flex-1 p-6 overflow-auto" style={{ marginTop: 'var(--topbar-height)' }}>
-          <div className="max-w-[1600px] mx-auto animate-fade-in">
+        <main className="flex-1 p-6 overflow-auto flex flex-col" style={{ marginTop: 'var(--topbar-height)' }}>
+          <div className="max-w-[1600px] mx-auto w-full animate-fade-in flex-1">
             {children}
           </div>
+          
+          {/* Full Footer */}
+          <footer className="mt-8 pt-6 pb-2 border-t w-full text-center flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              © {new Date().getFullYear()} <span style={{ color: 'var(--brand-pashu)', fontWeight: 600 }}>Pashu</span><span style={{ color: 'var(--brand-vaani)', fontWeight: 600 }}>Vaani</span>. All rights reserved.
+            </p>
+          </footer>
         </main>
       </div>
 

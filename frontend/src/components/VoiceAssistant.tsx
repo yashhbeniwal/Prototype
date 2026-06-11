@@ -141,7 +141,7 @@ export default function VoiceAssistant() {
                 🤖
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white">AI Farm Assistant</h3>
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>AI Farm Assistant</h3>
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Ask anything about your farm</p>
               </div>
             </div>

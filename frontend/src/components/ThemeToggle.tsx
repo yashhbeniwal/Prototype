@@ -26,8 +26,8 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="fixed bottom-6 right-6 p-3 rounded-full glass hover-lift z-50 text-gray-400 hover:text-white transition-all shadow-lg flex items-center justify-center"
-      style={{ background: 'var(--bg-card)' }}
+      className="fixed bottom-6 p-3 rounded-full glass hover-lift z-50 text-gray-400 hover:text-white transition-all shadow-lg flex items-center justify-center"
+      style={{ background: 'var(--bg-card)', left: 'calc(var(--sidebar-width, 0px) + 1.5rem)' }}
       aria-label="Toggle theme"
     >
       {theme === 'dark' ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-indigo-500" />}

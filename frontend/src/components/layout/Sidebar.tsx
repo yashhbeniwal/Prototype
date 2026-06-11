@@ -126,10 +126,6 @@ export default function Sidebar() {
           <span>Sign out</span>
         </button>
 
-        {/* Copyright */}
-        <p className="text-center text-[10px] pt-1" style={{ color: 'var(--text-muted)' }}>
-          © {new Date().getFullYear()} <span style={{ color: 'var(--brand-pashu)', fontWeight: 600 }}>Pashu</span><span style={{ color: 'var(--brand-vaani)', fontWeight: 600 }}>Vaani</span>
-        </p>
       </div>
     </aside>
   );

@@ -23,6 +23,56 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
+    // ... we will keep the original response interceptor code intact but we bypass it with our mocks anyway
+    return Promise.reject(error);
+  }
+);
+
+// MOCK ALL METHODS FOR THE PROTOTYPE
+const createMockResponse = (mockData: any, config: any) => {
+  return { 
+    data: { 
+      data: mockData, 
+      success: true,
+      pagination: { total: Array.isArray(mockData) ? mockData.length : 0, page: 1, limit: 20 }
+    }, 
+    status: 200, 
+    statusText: 'OK', 
+    headers: {}, 
+    config: config || {} 
+  } as any;
+};
+
+api.get = async (url: string, config?: any) => {
+  let mockData: any = [];
+  if (url.includes('/stats')) mockData = { totalAnimals: 150, sick: 5, pregnant: 12, milking: 45 };
+  else if (url.includes('/dashboard')) mockData = { revenue: 150000, expenses: 80000, profit: 70000 };
+  else if (url.includes('/customers/top-debtors')) mockData = [];
+  else if (url.includes('/auth/me')) mockData = { id: '1', name: 'Farmer', role: 'OWNER', email: 'farmerp@pashuvaani.com' };
+  
+  return createMockResponse(mockData, config);
+};
+
+api.post = async (url: string, data?: any, config?: any) => {
+  return createMockResponse({}, config);
+};
+
+api.patch = async (url: string, data?: any, config?: any) => {
+  return createMockResponse({}, config);
+};
+
+api.put = async (url: string, data?: any, config?: any) => {
+  return createMockResponse({}, config);
+};
+
+api.delete = async (url: string, config?: any) => {
+  return createMockResponse({}, config);
+};
+
+// Response interceptor — handle 401 refresh
+api.interceptors.response.use(
+  (res) => res,
+  async (error: AxiosError) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {

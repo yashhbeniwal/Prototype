@@ -3,6 +3,7 @@ import './globals.css';
 import { AuthProvider } from '@/lib/auth';
 import { Toaster } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { GlobalDismiss } from '@/components/GlobalDismiss';
 
 export const metadata: Metadata = {
   title: 'PashuVaani Prototype',
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           {children}
           <ThemeToggle />
+          <GlobalDismiss />
           <Toaster
             position="top-right"
             toastOptions={{
