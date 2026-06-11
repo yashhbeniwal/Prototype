@@ -42,8 +42,18 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md mx-4 animate-scale-in">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🐐</div>
-          <h1 className="text-3xl font-bold text-gradient">Goat Farm ERP</h1>
+          <div className="flex justify-center mb-3">
+            <img
+              src="/pashuvaan-logo.png"
+              alt="PashuVaani Logo"
+              width={90}
+              height={90}
+              style={{ objectFit: 'contain', filter: 'drop-shadow(0 4px 24px rgba(108,71,255,0.35))' }}
+            />
+          </div>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+            <span style={{ color: 'var(--brand-pashu)' }}>Pashu</span><span style={{ color: 'var(--brand-vaani)' }}>Vaani</span>
+          </h1>
           <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
             Sign in to manage your farm operations
           </p>
@@ -51,7 +61,7 @@ export default function LoginPage() {
 
         {/* Login Card */}
         <div className="glass rounded-3xl p-8">
-          <h2 className="text-xl font-semibold text-gray-100 mb-6">Welcome back</h2>
+          <h2 className="text-xl font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>Welcome back</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -84,7 +94,8 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors focus:outline-none"
+                  style={{ color: 'var(--text-muted)' }}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -114,6 +125,9 @@ export default function LoginPage() {
 
         <p className="text-center text-xs mt-6" style={{ color: 'var(--text-muted)' }}>
           🔒 Data stored securely in AWS Mumbai Region (India)
+        </p>
+        <p className="text-center text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
+          © {new Date().getFullYear()} <span style={{ color: 'var(--brand-pashu)', fontWeight: 600 }}>Pashu</span><span style={{ color: 'var(--brand-vaani)', fontWeight: 600 }}>Vaani</span>. All rights reserved.
         </p>
       </div>
     </div>

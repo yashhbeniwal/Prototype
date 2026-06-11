@@ -23,6 +23,12 @@
 
   --sidebar-width: 260px;
   --topbar-height: 64px;
+
+  --brand-pashu: #4ade80;
+  --brand-vaani: #22d3ee;
+
+  --glass-bg: rgba(22, 22, 31, 0.8);
+  --glass-bright-bg: rgba(30, 30, 42, 0.9);
 }
 
 :root.light {
@@ -36,6 +42,29 @@
   --text-secondary: #475569;
   --text-muted: #64748b;
   --accent-glow: rgba(108, 71, 255, 0.15);
+
+  --brand-pashu: #16a34a;
+  --brand-vaani: #0891b2;
+
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-bright-bg: rgba(255, 255, 255, 0.9);
+}
+
+/* Override hardcoded text-gray-* in light mode so it remains readable */
+:root.light .text-gray-100,
+:root.light .text-gray-200,
+:root.light .text-gray-300 {
+  color: var(--text-primary) !important;
+}
+:root.light .text-gray-400,
+:root.light .text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+:root.light .bg-gray-500\/5,
+:root.light .hover\:bg-gray-500\/5:hover,
+:root.light .hover\:bg-gray-500\/10:hover,
+:root.light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.05) !important;
 }
 
 /* ─── Base Styles ───────────────────────────────────────────────────────── */
@@ -76,14 +105,14 @@ body {
 /* ─── Glass Morphism Utilities ──────────────────────────────────────────── */
 @layer utilities {
   .glass {
-    background: rgba(22, 22, 31, 0.8);
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
   }
 
   .glass-bright {
-    background: rgba(30, 30, 42, 0.9);
+    background: var(--glass-bright-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border-bright);

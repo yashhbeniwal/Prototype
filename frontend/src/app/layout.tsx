@@ -5,10 +5,10 @@ import { Toaster } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export const metadata: Metadata = {
-  title: 'Goat Farm ERP | Farm Management Platform',
-  description: 'Production-ready cloud-based Goat Farm Management ERP SaaS platform. Manage animals, vaccinations, feed, billing, and get AI-powered voice insights.',
-  keywords: ['goat farm', 'farm management', 'ERP', 'livestock', 'animal management', 'vaccination tracking'],
-  authors: [{ name: 'Farm ERP Team' }],
+  title: 'PashuVaani Prototype',
+  description: 'PashuVaani – Cloud-based Farm Management ERP platform by PashuVaani. Manage animals, vaccinations, feed, billing, and get AI-powered voice insights.',
+  keywords: ['PashuVaani', 'farm management', 'ERP', 'livestock', 'animal management', 'vaccination tracking'],
+  authors: [{ name: 'PashuVaani' }],
   robots: 'noindex,nofollow', // Internal app
   manifest: '/manifest.json',
 };
@@ -21,7 +21,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="light">
       <body>
         <AuthProvider>
           {children}

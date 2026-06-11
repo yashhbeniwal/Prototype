@@ -62,12 +62,20 @@ export default function Sidebar() {
       }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-        <span className="text-3xl">🐐</span>
+      <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+        <img
+          src="/pashuvaan-logo.png"
+          alt="PashuVaani"
+          width={38}
+          height={38}
+          style={{ objectFit: 'contain', flexShrink: 0 }}
+        />
         <div>
-          <h1 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Farm ERP</h1>
+          <h1 className="text-sm font-bold" style={{ color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
+            <span style={{ color: 'var(--brand-pashu)' }}>Pashu</span><span style={{ color: 'var(--brand-vaani)' }}>Vaani</span>
+          </h1>
           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            {user?.farm?.name || 'Goat Farm'}
+            {user?.farm?.name || 'Farm ERP'}
           </p>
         </div>
       </div>
@@ -117,6 +125,11 @@ export default function Sidebar() {
           <LogOut size={16} />
           <span>Sign out</span>
         </button>
+
+        {/* Copyright */}
+        <p className="text-center text-[10px] pt-1" style={{ color: 'var(--text-muted)' }}>
+          © {new Date().getFullYear()} <span style={{ color: 'var(--brand-pashu)', fontWeight: 600 }}>Pashu</span><span style={{ color: 'var(--brand-vaani)', fontWeight: 600 }}>Vaani</span>
+        </p>
       </div>
     </aside>
   );
